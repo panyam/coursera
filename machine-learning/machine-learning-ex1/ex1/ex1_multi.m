@@ -106,7 +106,7 @@ fprintf('\n');
 % not need to be normalized.
 size = (1650 - mu(1)) / sigma(1);
 numrooms = (3 - mu(2)) / sigma(2);
-price = theta(1) + theta(1) * size + theta(2) * numrooms; % You should change this
+price = theta(1) + theta(2) * size + theta(3) * numrooms; % You should change this
 
 
 % ============================================================
@@ -151,7 +151,7 @@ fprintf('\n');
 
 % Estimate the price of a 1650 sq-ft, 3 br house
 % ====================== YOUR CODE HERE ======================
-price = theta(1) + theta(1) * size + theta(2) * numrooms; % You should change this
+price = theta(1) + theta(2) * 1650 + theta(3) * 3; % You should change this
 
 
 % ============================================================
