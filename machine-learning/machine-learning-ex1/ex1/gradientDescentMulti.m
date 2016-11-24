@@ -8,26 +8,14 @@ m = length(y); % number of training examples
 J_history = zeros(num_iters, 1);
 
 for iter = 1:num_iters
+    diffs = (X * theta) - y;
+    abym = alpha / m;
 
-    % ====================== YOUR CODE HERE ======================
-    % Instructions: Perform a single gradient step on the parameter vector
-    %               theta. 
-    %
-    % Hint: While debugging, it can be useful to print out the values
-    %       of the cost function (computeCostMulti) and gradient here.
-    %
-
-
-
-
-
-
-
-
-
-
-
-    % ============================================================
+    newtheta = zeros(size(theta));
+    for f = 1:size(theta,1)
+        newtheta(f) = theta(f) - (abym * sum(diffs .* X(:,f)));
+    end
+    theta = newtheta;
 
     % Save the cost J in every iteration    
     J_history(iter) = computeCostMulti(X, y, theta);
