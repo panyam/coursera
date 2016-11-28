@@ -22,14 +22,17 @@ Theta1 = reshape(nn_params(1:hidden_layer_size * (input_layer_size + 1)), ...
 Theta2 = reshape(nn_params((1 + (hidden_layer_size * (input_layer_size + 1))):end), ...
                  num_labels, (hidden_layer_size + 1));
 
+ST1 = size(Theta1)
+ST2 = size(Theta2)
+
 % ThetaX dimensions are #Outputs x #Inputs
 m = size(X, 1);
-theta_count = size(nn_params(:), 1)
-in_size = input_layer_size + 1
-next_size = hidden_layer_size
+theta_count = size(nn_params(:), 1);
+in_size = input_layer_size + 1;
+next_size = hidden_layer_size;
 A = X(:,:);
-SNN = size(nn_params)
 offset = iter = 1;
+theta_sums = 0;
 do
     A = [ones(size(A, 1), 1) A];
     fprintf('\nLayer: %d\n=========\n', iter) ; iter += 1;
@@ -44,6 +47,9 @@ do
         theta = reshape(nn_params(offset:endpos), next_size, in_size);
         A = sigmoid((theta * A')');
     endif
+
+    theta_sums += sum(sum(theta(:,(2:end)) .* theta(:,(2:end))))
+    % theta_sums -= size(theta, 1)
 
     ST = size(theta)
     SA2 = size(A)
@@ -63,14 +69,17 @@ yfunc = @(x) [zeros(1,x - 1) 1 zeros(1,num_labels - x)];
 for row = 1:size(y, 1)
     Y = [ Y ; yfunc(y(row)) ];
 end
-SY1 = size(y)
-SY2 = size(Y)
+% SY1 = size(y)
+% SY2 = size(Y)
 
 p1 = -Y .* log(A);
 p2 = (1 - Y) .* log(1 .- A);
-SP1 = size(p1)
-SP2 = size(p2)
+% SP1 = size(p1)
+% SP2 = size(p2)
 J = sum(sum(p1 - p2)) / m;
+
+J += (lambda / (2 * m)) * theta_sums
+
 Theta1_grad = zeros(size(Theta1));
 Theta2_grad = zeros(size(Theta2));
 
