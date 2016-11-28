@@ -13,9 +13,10 @@ p1 = -y .* log(sigmoid(TTX));
 p2 = (1-y) .* log(1 - sigmoid(TTX));
 J = sum(p1 - p2) / m;
 
+beta = sigmoid(TTX) - y
 grad = zeros(size(theta));
 for i = 1:size(theta)
-    grad(i) = sum((sigmoid(TTX) - y) .* X(:, i)) / m;
+    grad(i) = sum(beta .* X(:, i)) / m;
 end
 
 % ====================== YOUR CODE HERE ======================
