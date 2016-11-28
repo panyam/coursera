@@ -7,9 +7,9 @@ function p = predict(Theta1, Theta2, X)
 m = size(X, 1);
 num_labels = size(Theta2, 1);
 
-size(Theta1)
-size(Theta2)
-size(X)
+ST1 = size(Theta1)
+ST2 = size(Theta2)
+STX = size(X)
 
 X = [ones(size(X, 1), 1) X];
 a1 = sigmoid((Theta1 * X')');
