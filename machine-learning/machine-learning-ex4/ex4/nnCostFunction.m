@@ -22,66 +22,88 @@ Theta1 = reshape(nn_params(1:hidden_layer_size * (input_layer_size + 1)), ...
 Theta2 = reshape(nn_params((1 + (hidden_layer_size * (input_layer_size + 1))):end), ...
                  num_labels, (hidden_layer_size + 1));
 
-ST1 = size(Theta1)
-ST2 = size(Theta2)
-
 % ThetaX dimensions are #Outputs x #Inputs
 m = size(X, 1);
 theta_count = size(nn_params(:), 1);
 in_size = input_layer_size + 1;
 next_size = hidden_layer_size;
+all_thetas = {};
 A = X(:,:);
 offset = iter = 1;
 theta_sums = 0;
 do
     A = [ones(size(A, 1), 1) A];
-    fprintf('\nLayer: %d\n=========\n', iter) ; iter += 1;
-    SA1 = size(A)
+    % fprintf('\nLayer: %d\n=========\n', iter)
+    iter += 1;
+    SA1 = size(A);
 
     endpos = offset + (in_size * next_size) - 1;
     if endpos > theta_count
-        next_size = num_labels
+        next_size = num_labels;
         theta = reshape(nn_params(offset:end), next_size, in_size);
         A = sigmoid((theta * A')');
     else
         theta = reshape(nn_params(offset:endpos), next_size, in_size);
         A = sigmoid((theta * A')');
     endif
-
-    theta_sums += sum(sum(theta(:,(2:end)) .* theta(:,(2:end))))
-    % theta_sums -= size(theta, 1)
-
-    ST = size(theta)
-    SA2 = size(A)
+    all_thetas{size(all_thetas, 2) + 1} = theta;
+    theta_sums += sum(sum(theta(:,(2:end)) .* theta(:,(2:end))));
 
     offset = endpos + 1;
     endpos = offset + (in_size * next_size) - 1;
     in_size = next_size + 1;
 until (offset >= theta_count)
 
-fprintf("=========== End of Iter ============\n")
-SA = size(A)
-First_Row_Of_A = log(A(1,:))
-
+% fprintf("=========== End of Iter ============\n")
 % A is now h_theta(X)
+
+yfunc = @(x, num_labels) [zeros(1,x - 1) 1 zeros(1,num_labels - x)];
 Y = [];
-yfunc = @(x) [zeros(1,x - 1) 1 zeros(1,num_labels - x)];
 for row = 1:size(y, 1)
-    Y = [ Y ; yfunc(y(row)) ];
+    Y = [ Y ; yfunc(y(row), num_labels) ];
 end
-% SY1 = size(y)
-% SY2 = size(Y)
 
 p1 = -Y .* log(A);
 p2 = (1 - Y) .* log(1 .- A);
-% SP1 = size(p1)
-% SP2 = size(p2)
-J = sum(sum(p1 - p2)) / m;
-
-J += (lambda / (2 * m)) * theta_sums
+J = (sum(sum(p1 - p2)) / m) + (lambda / (2 * m)) * theta_sums;
 
 Theta1_grad = zeros(size(Theta1));
 Theta2_grad = zeros(size(Theta2));
+
+num_layers = size(all_thetas, 2);
+b_delta = {};
+for l = num_layers:-1:1
+    ST = size(all_thetas{l});
+    b_delta{l} = zeros(ST);
+end
+
+for t = 1:m
+    % Step 1 - Forward propogation with X(t)
+    A = {[1 X(t, :)]};
+    for l = 1:num_layers
+        curr_theta = all_thetas{l};
+        curr_A = A{end};
+        Z = curr_A * curr_theta';
+        next_A = sigmoid(Z);
+        A{l + 1} = [1 next_A];
+    end
+
+    % Step 2 - Compute errors at layer K (little delta)
+    yt = [1 yfunc(y(t), num_labels)];
+    prevA = A{end};
+    l_delta = (prevA - yt)(:, (2:end));
+
+    % Step 3 - Calculate errors for hidden layers
+    for l = num_layers:-1:1
+        curr_theta = all_thetas{l};
+        currA = A{l};
+        next_l_delta = (l_delta * curr_theta) .* currA .* (1 - currA);
+
+        SBD = size(b_delta{l});
+        b_delta{l} = b_delta{l} + (l_delta' * currA);
+        l_delta = next_l_delta(:, (2:end));
+    end
+end
 
 % ====================== YOUR CODE HERE ======================
 % Instructions: You should complete the code by working through the
@@ -138,7 +160,17 @@ Theta2_grad = zeros(size(Theta2));
 % =========================================================================
 
 % Unroll gradients
-grad = [Theta1_grad(:) ; Theta2_grad(:)];
-
+% grad = [Theta1_grad(:) ; Theta2_grad(:)];
+grad = [];
+for i=1:num_layers
+    D = b_delta{i};
+    % where col == 1, use D / m, else use (D + lambda) / m
+    col_1_with_ones = [ones(size(D,1), 1) zeros(size(D))(:,(2:end))];
+    col_X_with_ones = [zeros(size(D,1), 1) ones(size(D))(:,(2:end))];
+    D1 = D .* col_1_with_ones;
+    D2 = ((D + (lambda * all_thetas{i})) .* col_X_with_ones);
+    D3 = (D1 + D2) / m;
+    grad = [grad ; D3(:)];
+end
 
 end
