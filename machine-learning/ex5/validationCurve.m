@@ -12,10 +12,25 @@ function [lambda_vec, error_train, error_val] = ...
 % Selected values of lambda (you should not change this)
 lambda_vec = [0 0.001 0.003 0.01 0.03 0.1 0.3 1 3 10]';
 
+m = size(X, 1);
+mval = size(Xval, 1);
+
 % You need to return these variables correctly.
 error_train = zeros(length(lambda_vec), 1);
 error_val = zeros(length(lambda_vec), 1);
 
+for i = 1:length(lambda_vec)
+    lambda = lambda_vec(i);
+    theta = trainLinearReg(X, y, lambda);
+
+    Hx = (theta' * X')';
+    Hxsq = (Hx - y) .* (Hx - y);
+    error_train(i) = J = (sum(Hxsq) / (2 * m));
+
+    Hx = (theta' * Xval')';
+    Hxsq = (Hx - yval) .* (Hx - yval);
+    error_val(i) = J = (sum(Hxsq) / (2 * mval));
+end
 % ====================== YOUR CODE HERE ======================
 % Instructions: Fill in this function to return training errors in 
 %               error_train and the validation errors in error_val. The 

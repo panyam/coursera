@@ -22,8 +22,6 @@ mval = size(Xval, 1);
 error_train = zeros(m, 1);
 error_val   = zeros(m, 1);
 
-SX = size(X)
-Sy = size(y)
 for i = 1:m
     X2 = X(1:i,:);
     y2 = y(1:i);
