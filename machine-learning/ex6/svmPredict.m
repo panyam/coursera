@@ -19,6 +19,7 @@ m = size(X, 1);
 p = zeros(m, 1);
 pred = zeros(m, 1);
 
+
 if strcmp(func2str(model.kernelFunction), 'linearKernel')
     % We can use the weights and bias directly if working with the 
     % linear kernel
